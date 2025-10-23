@@ -18,7 +18,10 @@ def main():
         waitTime = 0
         # Segment_Edges(img)
 
-        Mid_edge_ROI, Mid_ROI_mask, Outer_edge_ROI, OuterLane_TwoSide, OuterLane_Points = Segment_Colour(img, minArea)
+     #   Mid_edge_ROI, Mid_ROI_mask, Outer_edge_ROI, OuterLane_TwoSide, OuterLane_Points = Segment_Colour(img, minArea)
+
+    
+        Segment_Colour(img, minArea)
 
         cv2.imshow("Frame", img)
         k = cv2.waitKey(waitTime)

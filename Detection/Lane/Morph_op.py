@@ -5,20 +5,53 @@ import time
 from Lane.utilities import Distance, Distance_
 
 
-def BwareaOpen(img,MinArea):
+# def BwareaOpen(img,MinArea):
+#     """
+#     Khoi loc nhieu
+#     Loại bỏ (xóa) các vùng trắng có diện tích nhỏ hơn ngưỡng MinArea trong ảnh nhị phân.
+#     """
+#     if img.dtype != np.uint8:
+#         img = cv2.convertScaleAbs(img)
 
-    thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)[1]
-    # Filter using contour area and remove small noise
-    cnts = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
-    cnts_TooSmall = []
-    for index, cnt in enumerate(cnts):
-        area = cv2.contourArea(cnt)
-        if area < MinArea:
-            cnts_TooSmall.append(cnt)
+
+#     _ ,thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)[1]
+#     # Filter using contour area and remove small noise
+#     cnts, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
+#     if len(cnts) == 0:
+#         return thresh
+
+#     cnts_TooSmall = []
+
+#     for index, cnt in enumerate(cnts):
+#         area = cv2.contourArea(cnt)
+#         if area < MinArea:
+#             cnts_TooSmall.append(cnt)
     
-    thresh = cv2.drawContours(thresh, cnts_TooSmall, -1, 0, -1) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
+#     thresh = cv2.drawContours(thresh, cnts_TooSmall, -1, 0, -1) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
             
+#     return thresh
+
+
+def BwareaOpen(img, MinArea):
+    # Bước 1: Nhị phân hóa
+    if img.dtype != np.uint8:
+        img = cv2.convertScaleAbs(img)
+    _, thresh = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY)
+    
+    # Bước 2: Tìm contour
+    cnts, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    if len(cnts) == 0:
+        return thresh
+
+    # Bước 3: Xóa contour nhỏ hơn MinArea
+    cnts_TooSmall = []
+    for cnt in cnts:
+        if cv2.contourArea(cnt) < MinArea:
+            cnts_TooSmall.append(cnt)
+
+    cv2.drawContours(thresh, cnts_TooSmall, -1, 0, -1)
     return thresh
+
 
 def FindExtremas(img):
     positions = np.nonzero(img) # position[0] 0 = rows 1 = cols
