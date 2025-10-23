@@ -141,50 +141,42 @@ def OuterLaneROI(frame,mask,minArea):
 
     # 5a. Extracted OuterLanes Mask And Edge
     frame_Lane = cv2.bitwise_and(frame,frame,mask=mask)#Extracting only RGB from a specific region
-    cv2.imshow("yellow frame: ", frame_Lane)
-
     Lane_gray = cv2.cvtColor(frame_Lane,cv2.COLOR_BGR2GRAY)# Converting to grayscale
-    cv2.imshow("lane_gray frame: ", Lane_gray)
-
     Lane_gray_opened = BwareaOpen(Lane_gray,minArea) # Getting mask of only objects larger then minArea
-    cv2.imshow("Lane_gray_opened frame: ", Lane_gray_opened)
-
     Lane_gray = cv2.bitwise_and(Lane_gray,Lane_gray_opened)# Getting the gray of that mask
-    cv2.imshow("Lane_gray2 frame: ", Lane_gray)
-
     Lane_gray_Smoothed = cv2.GaussianBlur(Lane_gray,(11,11),1)# Smoothing out the edges for edge extraction later
-    cv2.imshow("Lane_gray_Smoothed frame: ", Lane_gray_Smoothed)
+
     Lane_edge = cv2.Canny(Lane_gray_Smoothed,50,150, None, 3) # Extracting the Edge of Canny
-    cv2.imshow("Lane_edge frame: ", Lane_edge)
+
 
     # # 5b. Kept Larger OuterLane
-    # ROI_mask_Largest,Largest_found = RetLargestContour_OuterLane(Lane_gray_opened,minArea) # Extracting the largest Yellow object in frame
+    ROI_mask_Largest,Largest_found = RetLargestContour_OuterLane(Lane_gray_opened,minArea) # Extracting the largest Yellow object in frame
 
-    # if(Largest_found):
-    #     # 5c. Kept Larger OuterLane [Edge]
-    #     Outer_edge_Largest = cv2.bitwise_and(Lane_edge,ROI_mask_Largest)
-    #     # 5d. Returned Lowest Edge Points
-    #     Lane_TwoEdges, Outer_Points_list = Ret_LowestEdgePoints(ROI_mask_Largest)
-    #     Lane_edge = Outer_edge_Largest
-    # else:
-    #     Lane_TwoEdges = np.zeros(Lane_gray.shape,Lane_gray.dtype)
-
-
-
-
-    #cv2.imshow('frame_Lane',frame_Lane)
-    #cv2.imshow('Lane_gray',Lane_gray)
-    #cv2.imshow('Lane_gray_opened',Lane_gray_opened)
-    #cv2.imshow('Lane_gray_Smoothed',Lane_gray_Smoothed)
-    #cv2.imshow('Lane_edge_ROI',Lane_edge_ROI)
-
-    #cv2.imshow('ROI_mask_Largest',ROI_mask_Largest)
-    #cv2.imshow('Lane_edge',Lane_edge)
-    #cv2.imshow('Lane_TwoEdges',Lane_TwoEdges)
+    if(Largest_found):
+        # 5c. Kept Larger OuterLane [Edge]
+        Outer_edge_Largest = cv2.bitwise_and(Lane_edge,ROI_mask_Largest)
+        # 5d. Returned Lowest Edge Points
+        Lane_TwoEdges, Outer_Points_list = Ret_LowestEdgePoints(ROI_mask_Largest)
+        Lane_edge = Outer_edge_Largest
+    else:
+        Lane_TwoEdges = np.zeros(Lane_gray.shape,Lane_gray.dtype)
 
 
 
-   # return Lane_edge,Lane_TwoEdges,Outer_Points_list
+
+    # cv2.imshow('frame_Lane',frame_Lane)
+    # cv2.imshow('Lane_gray',Lane_gray)
+    # cv2.imshow('Lane_gray_opened',Lane_gray_opened)
+    # cv2.imshow('Lane_gray_Smoothed',Lane_gray_Smoothed)
+    # # cv2.imshow('Lane_edge_ROI',Lane_edge_ROI)
+
+    # cv2.imshow('ROI_mask_Largest',ROI_mask_Largest)
+    # cv2.imshow('Lane_edge',Lane_edge)
+    # cv2.imshow('Lane_TwoEdges',Lane_TwoEdges)
+
+
+
+    return Lane_edge, Lane_TwoEdges, Outer_Points_list
 
 def Segment_Colour(frame,minArea):
     """ Segment Lane-Lines (both outer and middle) from the road lane
@@ -214,25 +206,26 @@ def Segment_Colour(frame,minArea):
     
    # Outer_edge_ROI, OuterLane_SidesSeperated,Outer_Points_list = OuterLaneROI(frame, mask_Y, minArea + 500)#27msec
 
-    OuterLaneROI(frame, mask_Y, minArea + 500)#27msec
+    Outer_edge_ROI,OuterLane_SidesSeperated,Outer_Points_list = OuterLaneROI(frame, mask_Y, minArea + 500)#27msec
 
-    # Mid_edge_ROI,Mid_ROI_mask = LaneROI(frame,mask_W,minArea)#20 msec
+    Mid_edge_ROI,Mid_ROI_mask = LaneROI(frame,mask_W,minArea)#20 msec
 
 
 
-    cv2.imshow("White Lane Mask", mask_W)
-    cv2.imshow("Yellow Lane Mask", mask_Y)
 
-    # cv2.imshow('Mid_ROI_mask',Mid_ROI_mask)
+    # cv2.imshow("White Lane Mask", mask_W)
+    # cv2.imshow("Yellow Lane Mask", mask_Y)
 
-    # if(config.clr_segmentation_tuning):
-    #     cv2.imshow('[Segment_Colour_final] mask',mask)
-    #     cv2.imshow('[Segment_Colour_final] mask_Y',mask_Y)
+    cv2.imshow('Mid_ROI_mask',Mid_ROI_mask)
 
-    #     #cv2.imshow('Mid_ROI_mask',Mid_ROI_mask)
-    #     #cv2.imshow('Mid_edge_ROI',Mid_edge_ROI)
+    if(config.clr_segmentation_tuning):
+        cv2.imshow('[Segment_Colour_final] mask',mask_W)
+        cv2.imshow('[Segment_Colour_final] mask_Y',mask_Y)
 
-    #     cv2.imshow('Outer_edge_ROI',Outer_edge_ROI)
-    #     cv2.imshow('OuterLane_Side_Seperated',OuterLane_SidesSeperated)
+        cv2.imshow('Mid_ROI_mask',Mid_ROI_mask)
+        cv2.imshow('Mid_edge_ROI',Mid_edge_ROI)
 
-    #return Mid_edge_ROI,Mid_ROI_mask,Outer_edge_ROI,OuterLane_SidesSeperated,Outer_Points_list
+        cv2.imshow('Outer_edge_ROI',Outer_edge_ROI)
+        cv2.imshow('OuterLane_Side_Seperated',OuterLane_SidesSeperated)
+
+    return Mid_edge_ROI,Mid_ROI_mask,Outer_edge_ROI,OuterLane_SidesSeperated,Outer_Points_list

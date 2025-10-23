@@ -97,26 +97,62 @@ def RetLargestContour(gray):
         thresh = cv2.drawContours(thresh, cnts, Max_Cntr_idx, (255,255,255), -1) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
     return thresh, LargestContour_Found
 
-def RetLargestContour_OuterLane(gray,minArea):
+# def RetLargestContour_OuterLane(gray,minArea):
+#     LargestContour_Found = False
+#     thresh=np.zeros(gray.shape,dtype=gray.dtype)
+#     _,bin_img = cv2.threshold(gray,0,255,cv2.THRESH_BINARY)
+#     #Find the two Contours for which you want to find the min distance between them.
+#     cnts, _ = cv2.findContours(bin_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
+#     Max_Cntr_area = 0
+#     Max_Cntr_idx= -1
+#     for index, cnt in enumerate(cnts):
+#         area = cv2.contourArea(cnt)
+#         if area > Max_Cntr_area:
+#             Max_Cntr_area = area
+#             Max_Cntr_idx = index
+#             LargestContour_Found = True
+    
+#     if Max_Cntr_area < minArea:
+#         LargestContour_Found = False
+#     if ((Max_Cntr_idx!=-1) and (LargestContour_Found)):
+#         thresh = cv2.drawContours(thresh, cnts, Max_Cntr_idx, (255,255,255), -1) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
+#     return thresh, LargestContour_Found
+
+
+def RetLargestContour_OuterLane(gray, minArea):
     LargestContour_Found = False
-    thresh=np.zeros(gray.shape,dtype=gray.dtype)
-    _,bin_img = cv2.threshold(gray,0,255,cv2.THRESH_BINARY)
-    #Find the two Contours for which you want to find the min distance between them.
-    cnts = cv2.findContours(bin_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
+    thresh = np.zeros(gray.shape, dtype=gray.dtype)
+
+    # Bước 1: Chuẩn hóa ảnh nhị phân
+    _, bin_img = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
+
+    # Bước 2: Tìm tất cả các contour
+    cnts, _ = cv2.findContours(bin_img, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    if len(cnts) == 0:
+        return thresh, False
+
+    # Bước 3: Duyệt tìm contour có diện tích lớn nhất
     Max_Cntr_area = 0
-    Max_Cntr_idx= -1
+    Max_Cntr_idx = -1
     for index, cnt in enumerate(cnts):
+        if not isinstance(cnt, np.ndarray) or len(cnt) < 3:
+            continue  # bỏ qua contour rỗng
         area = cv2.contourArea(cnt)
         if area > Max_Cntr_area:
             Max_Cntr_area = area
             Max_Cntr_idx = index
             LargestContour_Found = True
-    
+
+    # Bước 4: Nếu vùng lớn nhất vẫn nhỏ hơn ngưỡng thì coi như không có
     if Max_Cntr_area < minArea:
         LargestContour_Found = False
-    if ((Max_Cntr_idx!=-1) and (LargestContour_Found)):
-        thresh = cv2.drawContours(thresh, cnts, Max_Cntr_idx, (255,255,255), -1) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
+
+    # Bước 5: Nếu tìm được vùng hợp lệ, vẽ vùng đó lên ảnh mask trắng
+    if Max_Cntr_idx != -1 and LargestContour_Found:
+        cv2.drawContours(thresh, cnts, Max_Cntr_idx, (255, 255, 255), -1)
+
     return thresh, LargestContour_Found
+
 
 def ROI_extracter(image,strtPnt,endPnt):
     #  Selecting Only ROI from Image
@@ -140,71 +176,66 @@ def ExtractPoint(img,specified_row):
     return Point
 
 def Ret_LowestEdgePoints(gray):
-    
-    Outer_Points_list=[]
-    thresh = np.zeros(gray.shape,dtype=gray.dtype)
-    Lane_OneSide=np.zeros(gray.shape,dtype=gray.dtype)
-    Lane_TwoSide=np.zeros(gray.shape,dtype=gray.dtype)
+    Outer_Points_list = []
+    thresh = np.zeros(gray.shape, dtype=gray.dtype)
+    Lane_OneSide = np.zeros(gray.shape, dtype=gray.dtype)
+    Lane_TwoSide = np.zeros(gray.shape, dtype=gray.dtype)
 
-    _,bin_img = cv2.threshold(gray,0,255,cv2.THRESH_BINARY)
-        #Find the two Contours for which you want to find the min distance between them.
-    cnts = cv2.findContours(bin_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
-    thresh = cv2.drawContours(thresh, cnts, 0, (255,255,255), 1) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
-    # Boundary of the Contour is extracted and Saved in Thresh
+    # --- 1. Chuẩn hóa ảnh nhị phân ---
+    _, bin_img = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
 
-    Top_Row,Bot_Row = FindExtremas(thresh)
+    # --- 2. Tìm contour ---
+    cnts, _ = cv2.findContours(bin_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if len(cnts) == 0:
+        # Không có vùng trắng nào => trả về trống
+        return Lane_TwoSide, Outer_Points_list
 
-    #cv2.namedWindow("thresh",cv2.WINDOW_NORMAL)
-    #cv2.imshow("thresh",thresh)
+    # --- 3. Vẽ contour đầu tiên (chỉ khi có ít nhất 1 contour hợp lệ) ---
+    if len(cnts[0]) > 0:
+        cv2.drawContours(thresh, cnts, 0, (255, 255, 255), 1)
 
-    Contour_TopBot_PortionCut = ROI_extracter(thresh,(0, Top_Row + 25),(thresh.shape[1],Bot_Row-15))
-    #cv2.imshow("Contour_TopBot_PortionCut",Contour_TopBot_PortionCut)
+    # --- 4. Tìm hàng trên & dưới của contour ---
+    Top_Row, Bot_Row = FindExtremas(thresh)
 
-    cnts2 = cv2.findContours(Contour_TopBot_PortionCut, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
+    # --- 5. Cắt ROI giữa Top và Bot ---
+    Contour_TopBot_PortionCut = ROI_extracter(
+        thresh, (0, Top_Row + 25), (thresh.shape[1], Bot_Row - 15)
+    )
 
-    LowRow_a=-1
-    LowRow_b=-1
-    
-    Euc_row=0# Row for the points to be compared
+    # --- 6. Tìm contour trong ROI cắt ---
+    cnts2, _ = cv2.findContours(Contour_TopBot_PortionCut, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if len(cnts2) == 0:
+        return Lane_TwoSide, Outer_Points_list
 
+    # --- 7. Lọc các contour nhỏ ---
+    cnts2_tmp = [c for c in cnts2 if len(c) > 50]
+    cnts2 = cnts2_tmp
+
+    LowRow_a = -1
+    LowRow_b = -1
+    Euc_row = 0
     First_line = np.copy(Lane_OneSide)
-    cnts_tmp = []
 
-    if(len(cnts2)>2):
-        for index_tmp, cnt_tmp in enumerate(cnts2):
-            if((cnt_tmp.shape[0])>50):
-                cnts_tmp.append(cnt_tmp)
-        cnts2 = cnts_tmp
-
+    # --- 8. Duyệt qua từng contour ---
     for index, cnt in enumerate(cnts2):
-        Lane_OneSide = np.zeros(gray.shape,dtype=gray.dtype)
-        Lane_OneSide = cv2.drawContours(Lane_OneSide, cnts2, index, (255,255,255), 2) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
-        Lane_TwoSide = cv2.drawContours(Lane_TwoSide, cnts2, index, (255,255,255), 2) # [ contour = less then minarea contour, contourIDx, Colour , Thickness ]
-        #cv2.namedWindow("Lane_TwoSide",cv2.WINDOW_NORMAL)
-        #cv2.imshow("Lane_TwoSide",Lane_TwoSide)
-        #cv2.namedWindow("Lane_OneSide",cv2.WINDOW_NORMAL)
-        #cv2.imshow("Lane_OneSide",Lane_OneSide)
-        #cv2.waitKey(0)
-        if(len(cnts2)==2):
-            if (index==0):
+        Lane_OneSide = np.zeros(gray.shape, dtype=gray.dtype)
+        cv2.drawContours(Lane_OneSide, cnts2, index, (255, 255, 255), 2)
+        cv2.drawContours(Lane_TwoSide, cnts2, index, (255, 255, 255), 2)
+
+        if len(cnts2) == 2:
+            if index == 0:
                 First_line = np.copy(Lane_OneSide)
                 LowRow_a = FindLowestRow(Lane_OneSide)
-            elif(index==1):
+            elif index == 1:
                 LowRow_b = FindLowestRow(Lane_OneSide)
-                if(LowRow_a<LowRow_b):# First index is shorter 
-                    Euc_row=LowRow_a
-                else:
-                    Euc_row=LowRow_b
-                #print("Euc_row",Euc_row)
-                #cv2.namedWindow("First_line",cv2.WINDOW_NORMAL)
-                #cv2.imshow("First_line",First_line)
-                #cv2.waitKey(0)
-                Point_a = ExtractPoint(First_line,Euc_row)
-                Point_b = ExtractPoint(Lane_OneSide,Euc_row)
+                Euc_row = min(LowRow_a, LowRow_b)
+                Point_a = ExtractPoint(First_line, Euc_row)
+                Point_b = ExtractPoint(Lane_OneSide, Euc_row)
                 Outer_Points_list.append(Point_a)
                 Outer_Points_list.append(Point_b)
-    
+
     return Lane_TwoSide, Outer_Points_list
+
 
 def ApproxDistBWCntrs(cnt,cnt_cmp):
     # compute the center of the contour
