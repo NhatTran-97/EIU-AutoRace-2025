@@ -21,8 +21,8 @@ clr_segmentation_tuning = True # Set to True --> If you want to tune color segme
 # loopCount=0
 
 
-# Resized_width = 320#320#240#640#320 # Control Parameter
-# Resized_height = 240#240#180#480#240
+Resized_width = 320#320#240#640#320 # Control Parameter
+Resized_height = 240#240#180#480#240
 
 # in_q = cv2.VideoWriter( os.path.abspath("SW Modular Scripts/Detection/Lanes/Results/in_new.avi") , cv2.VideoWriter_fourcc('M','J','P','G'), 30, (Resized_width,Resized_height))
 # out  = cv2.VideoWriter( os.path.abspath('SW Modular Scripts/Detection/Lanes/Results/out_new.avi') , cv2.VideoWriter_fourcc('M','J','P','G'), 30, (Resized_width,Resized_height))
@@ -37,7 +37,7 @@ clr_segmentation_tuning = True # Set to True --> If you want to tune color segme
 # Ref_imgHeight = 1080
 
 # #Ref_imgWidth = 640
-# #Ref_imgHeight = 480
+Ref_imgHeight = 480
 
 # Frame_pixels = Ref_imgWidth * Ref_imgHeight
 
@@ -46,8 +46,8 @@ clr_segmentation_tuning = True # Set to True --> If you want to tune color segme
 # Lane_Extraction_minArea_per = 1000 / Frame_pixels
 # minArea_resized = int(Resize_Framepixels * Lane_Extraction_minArea_per)
 
-# BWContourOpen_speed_MaxDist_per = 400 / Ref_imgHeight
-# MaxDist_resized = int(Resized_height * BWContourOpen_speed_MaxDist_per)
+BWContourOpen_speed_MaxDist_per = 400 / Ref_imgHeight
+MaxDist_resized = int(Resized_height * BWContourOpen_speed_MaxDist_per)
 
 # CropHeight = 600
 # CropHeight_resized = int( (CropHeight / Ref_imgHeight ) * Resized_height )

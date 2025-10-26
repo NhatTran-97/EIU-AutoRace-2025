@@ -53,9 +53,13 @@ def OnSatLowChange_Y(val):
     MaskExtract()
 
 def MaskExtract():
-    mask   = clr_segment(HLS,(Hue_Low  ,Lit_Low   ,Sat_Low  ),(255       ,255,255))
+    global HLS, src
+    if isinstance(HLS, int) or HLS is None or not hasattr(HLS, "shape"):
+        print("[Warning] HLS chưa được khởi tạo! Bỏ qua MaskExtract()")
+        return
+    mask   = clr_segment(HLS,(Hue_Low  ,Lit_Low   ,Sat_Low  ),(255, 255, 255))
 
-    mask_Y = clr_segment(HLS,(Hue_Low_Y,Lit_Low_Y ,Sat_Low_Y),(Hue_High_Y,255,255))#Combine 6ms
+    mask_Y = clr_segment(HLS,(Hue_Low_Y, Lit_Low_Y, Sat_Low_Y),(Hue_High_Y, 255, 255))#Combine 6ms
     mask_Y_ = mask_Y != 0
     dst_Y = src * (mask_Y_[:,:,None].astype(src.dtype))
     mask_ = mask != 0
@@ -66,7 +70,7 @@ def MaskExtract():
     #cv2.imshow('mask_Y',mask_Y)
     cv2.imshow('[Segment_Colour_final] mask_Y',dst_Y)
 
-def clr_segment(HSL,lower_range,upper_range):
+def clr_segment(HLS,lower_range,upper_range):
     """
     Input: HLS, low range and up range 
     """
@@ -74,7 +78,7 @@ def clr_segment(HSL,lower_range,upper_range):
     # 2. Performing Color Segmentation on Given Range
     lower = np.array( [lower_range[0],lower_range[1] ,lower_range[2]] )
     upper = np.array( [upper_range[0]    ,255     ,255])
-    mask = cv2.inRange(HSL, lower, upper)
+    mask = cv2.inRange(HLS, lower, upper)
     
     # 3. Dilating Segmented ROI's
     kernel = cv2.getStructuringElement(shape=cv2.MORPH_ELLIPSE, ksize=(3,3))
@@ -134,6 +138,7 @@ def LaneROI(frame,mask,minArea):
     #cv2.imshow('Lane_edge',Lane_edge)
 
     return Lane_edge,Lane_gray_opened
+
 
 def OuterLaneROI(frame,mask,minArea):
 
