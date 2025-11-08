@@ -33,21 +33,21 @@ Resized_height = 240#240#180#480#240
 #     waitTime = 1
 
 # #============================================ Paramters for Lane Detection =======================================
-# Ref_imgWidth = 1920
-# Ref_imgHeight = 1080
+Ref_imgWidth = 1920
+Ref_imgHeight = 1080
 
-# #Ref_imgWidth = 640
+Ref_imgWidth = 640
 Ref_imgHeight = 480
 
-# Frame_pixels = Ref_imgWidth * Ref_imgHeight
+Frame_pixels = Ref_imgWidth * Ref_imgHeight
 
-# Resize_Framepixels = Resized_width * Resized_height
+Resize_Framepixels = Resized_width * Resized_height
 
-# Lane_Extraction_minArea_per = 1000 / Frame_pixels
-# minArea_resized = int(Resize_Framepixels * Lane_Extraction_minArea_per)
+Lane_Extraction_minArea_per = 1000 / Frame_pixels
+minArea_resized = int(Resize_Framepixels * Lane_Extraction_minArea_per)
 
 BWContourOpen_speed_MaxDist_per = 400 / Ref_imgHeight
 MaxDist_resized = int(Resized_height * BWContourOpen_speed_MaxDist_per)
 
-# CropHeight = 600
-# CropHeight_resized = int( (CropHeight / Ref_imgHeight ) * Resized_height )
+CropHeight = 600
+CropHeight_resized = int( (CropHeight / Ref_imgHeight ) * Resized_height )

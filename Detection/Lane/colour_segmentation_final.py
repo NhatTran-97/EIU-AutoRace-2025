@@ -150,7 +150,6 @@ def OuterLaneROI(frame,mask,minArea):
     Lane_gray_opened = BwareaOpen(Lane_gray,minArea) # Getting mask of only objects larger then minArea
     Lane_gray = cv2.bitwise_and(Lane_gray,Lane_gray_opened)# Getting the gray of that mask
     Lane_gray_Smoothed = cv2.GaussianBlur(Lane_gray,(11,11),1)# Smoothing out the edges for edge extraction later
-
     Lane_edge = cv2.Canny(Lane_gray_Smoothed,50,150, None, 3) # Extracting the Edge of Canny
 
 
@@ -203,9 +202,11 @@ def Segment_Colour(frame,minArea):
     
     # 1. Converting frame to HLS ColorSpace
     HLS = cv2.cvtColor(frame,cv2.COLOR_BGR2HLS)#2 msc
+    cv2.imshow("HLS: ", HLS)
 
 
     mask_W   = clr_segment(HLS,(Hue_Low, Lit_Low, Sat_Low ),(255, 255, 255))
+   
 
     mask_Y = clr_segment(HLS, (Hue_Low_Y, Lit_Low_Y, Sat_Low_Y),(Hue_High_Y, 255, 255))#Combine 6ms
     
@@ -227,10 +228,11 @@ def Segment_Colour(frame,minArea):
         cv2.imshow('[Segment_Colour_final] mask',mask_W)
         cv2.imshow('[Segment_Colour_final] mask_Y',mask_Y)
 
-        cv2.imshow('Mid_ROI_mask',Mid_ROI_mask)
-        cv2.imshow('Mid_edge_ROI',Mid_edge_ROI)
+        # cv2.imshow('Mid_ROI_mask',Mid_ROI_mask)
+        # cv2.imshow('Mid_edge_ROI',Mid_edge_ROI)
 
         cv2.imshow('Outer_edge_ROI',Outer_edge_ROI)
         cv2.imshow('OuterLane_Side_Seperated',OuterLane_SidesSeperated)
 
     return Mid_edge_ROI,Mid_ROI_mask,Outer_edge_ROI,OuterLane_SidesSeperated,Outer_Points_list
+
